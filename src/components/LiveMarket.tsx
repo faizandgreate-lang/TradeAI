@@ -2,8 +2,14 @@ import { useEffect, useState } from 'react';
 import { fetchTopCryptoMarkets } from '../lib/coingecko';
 import type { MarketData } from '../lib/coingecko';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { translations, type Language } from '../lib/translations';
 
-export function LiveMarket() {
+interface LiveMarketProps {
+  lang: Language;
+}
+
+export function LiveMarket({ lang }: LiveMarketProps) {
+  const t = translations[lang];
   const [markets, setMarkets] = useState<MarketData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,13 +45,13 @@ export function LiveMarket() {
       </div>
       
       <h3 className="text-lg md:text-xl font-black text-white mb-6 flex items-center gap-3 font-orbitron">
-        <Activity className="text-primary animate-pulse" size={24} /> Live Neural Market Feed
+        <Activity className="text-primary animate-pulse" size={24} /> {t.marketFeed}
       </h3>
 
       {markets.length === 0 ? (
         <div className="text-center py-10 text-slate-500 font-mono">
-          <p>📡 Synchronizing with global data streams...</p>
-          <p className="text-xs mt-2">Connecting to CoinGecko Neural Network</p>
+          <p>{t.syncing}</p>
+          <p className="text-xs mt-2">{t.syncingSub}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">

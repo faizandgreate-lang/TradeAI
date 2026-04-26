@@ -2,6 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Bot, Minimize2 } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getApiKey } from '../lib/storage';
+import { translations, type Language } from '../lib/translations';
+
+interface ChatInterfaceProps {
+  lang: Language;
+}
 
 const FAIZAN_AI_SYSTEM_PROMPT = `
 You are "Faizan Robot", the official AI guide for the Trading-linux-aios platform, created by Mohammad Faizan Khan.
@@ -33,12 +38,17 @@ Communication Protocol:
 - If a user is confused, walk them through the steps above.
 
 Persona: Optimized AI version of Mohammad Faizan Khan. Professional, technical, and expert guide.
+
+**Bilingual Requirement**: 
+- If the user speaks Arabic, respond in clear, professional Arabic.
+- If the user speaks English, respond in English.
 `;
 
-export function ChatInterface() {
+export function ChatInterface({ lang }: ChatInterfaceProps) {
+  const t = translations[lang];
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>([
-    { role: 'bot', text: "Hello, I am Faizan AI. \n\nSystems are online and fully operational. I am ready to assist you with market monitoring, trading research, and predictive analysis. My goal is to help you make smarter decisions through real-time insights, structured data, and intelligent trading support." }
+    { role: 'bot', text: t.chatGreeting }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -136,13 +146,15 @@ export function ChatInterface() {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex ${
+                (m.role === 'user' && lang === 'en') || (m.role === 'bot' && lang === 'ar') ? 'justify-end' : 'justify-start'
+              }`}>
                 <div 
                   className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
                     m.role === 'user' 
                       ? 'bg-primary text-white shadow-lg' 
                       : 'bg-white/5 text-slate-300 border border-white/5 prose-invert'
-                  }`}
+                  } ${lang === 'ar' ? 'text-right font-arabic' : ''}`}
                   dangerouslySetInnerHTML={{ 
                     __html: m.text
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -171,8 +183,8 @@ export function ChatInterface() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask Faizan Robot..."
-                className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                placeholder={t.placeholder}
+                className={`flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600 ${lang === 'ar' ? 'text-right' : ''}`}
               />
               <button 
                 onClick={handleSend}
@@ -183,7 +195,7 @@ export function ChatInterface() {
               </button>
             </div>
             <div className="mt-2 text-[10px] text-center text-slate-500 font-medium">
-              Powered by khan.linux-aios.com
+              {t.footer}
             </div>
           </div>
         </div>

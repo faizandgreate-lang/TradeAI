@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, ExternalLink, Activity } from 'lucide-react';
+import { Settings, ExternalLink, Activity, Languages } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { LiveMarket } from './components/LiveMarket';
 import { PredictionPanel } from './components/PredictionPanel';
@@ -7,6 +7,7 @@ import { HistoryTable } from './components/HistoryTable';
 import { TradingChart } from './components/TradingChart';
 import { ChatInterface } from './components/ChatInterface';
 import { getHistory, clearHistory } from './lib/storage';
+import { translations, type Language } from './lib/translations';
 import type { PredictionHistoryItem } from './lib/storage';
 
 const POPULAR_PAIRS: Record<string, string[]> = {
@@ -19,13 +20,21 @@ const POPULAR_PAIRS: Record<string, string[]> = {
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [history, setHistory] = useState<PredictionHistoryItem[]>([]);
+  const [lang, setLang] = useState<Language>(() => (localStorage.getItem('lang') as Language) || 'en');
   
   const [assetType, setAssetType] = useState('Crypto');
   const [pair, setPair] = useState(POPULAR_PAIRS['Crypto'][0]);
 
+  const t = translations[lang];
+
   useEffect(() => {
     setHistory(getHistory());
-  }, []);
+    localStorage.setItem('lang', lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  const toggleLang = () => setLang(l => l === 'en' ? 'ar' : 'en');
 
   const handleNewPrediction = () => {
     setHistory(getHistory());
@@ -37,7 +46,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pb-20 scanline relative overflow-hidden">
+    <div className={`min-h-screen pb-20 scanline relative overflow-hidden ${lang === 'ar' ? 'font-arabic' : ''}`}>
       {/* Animated Background Elements */}
       <div className="fixed inset-0 z-[-2] pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse"></div>
@@ -61,18 +70,24 @@ function App() {
             </div>
             
             <div className="flex items-center gap-2 md:gap-4">
+              <button 
+                onClick={toggleLang}
+                className="flex items-center gap-2 text-xs md:text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 md:px-4 py-2 rounded-full transition-all border border-white/5 hover:border-white/20"
+              >
+                <Languages size={14} /> {lang === 'en' ? 'Arabic' : 'English'}
+              </button>
               <a 
                 href="https://khan.linux-aios.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hidden sm:flex items-center gap-2 text-xs md:text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 md:px-4 py-2 rounded-full transition-all border border-white/5 hover:border-white/20"
               >
-                Portfolio <ExternalLink size={14} />
+                {t.portfolio} <ExternalLink size={14} />
               </a>
               <button 
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 md:p-2.5 text-slate-400 hover:text-primary transition-colors bg-white/5 hover:bg-primary/10 rounded-full border border-white/5"
-                title="API Settings"
+                title={t.settings}
               >
                 <Settings size={22} />
               </button>
@@ -86,17 +101,17 @@ function App() {
         {/* Hero */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-3xl md:text-6xl font-black text-white mb-3 md:mb-4 tracking-tighter uppercase font-orbitron">
-            AI Trading <span className="text-primary">Intelligence</span>
+            {t.title}
           </h1>
           <p className="text-sm md:text-xl text-slate-400 font-bold max-w-2xl mx-auto tracking-wide">
-            Faizan AI Robot v1.0
+            {t.subtitle}
           </p>
           <div className="mt-6 md:mt-8 inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary px-4 md:px-6 py-2 md:py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.1em] md:tracking-[0.2em]">
-            <Activity size={16} /> Neural Network Online
+            <Activity size={16} /> {t.neuralNetwork}
           </div>
         </div>
 
-        <LiveMarket />
+        <LiveMarket lang={lang} />
         
         <PredictionPanel 
           onNewPrediction={handleNewPrediction} 
@@ -105,16 +120,17 @@ function App() {
           pair={pair}
           setPair={setPair}
           popularPairs={POPULAR_PAIRS}
+          lang={lang}
         />
 
         <TradingChart pair={pair} />
         
-        <HistoryTable history={history} onClear={handleClearHistory} />
+        <HistoryTable history={history} onClear={handleClearHistory} lang={lang} />
 
       </main>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-      <ChatInterface />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} lang={lang} />
+      <ChatInterface lang={lang} />
     </div>
   );
 }

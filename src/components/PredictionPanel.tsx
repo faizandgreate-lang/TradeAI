@@ -3,6 +3,7 @@ import { Bot, Target, Clock, ArrowRight, Zap, TrendingUp, TrendingDown, AlertTri
 import { generatePrediction } from '../lib/gemini';
 import { addHistoryItem, getApiKey } from '../lib/storage';
 import { fetchTopCryptoMarkets } from '../lib/coingecko';
+import { translations, type Language } from '../lib/translations';
 import type { MarketData } from '../lib/coingecko';
 
 interface PredictionResult {
@@ -21,6 +22,7 @@ interface PredictionPanelProps {
   pair: string;
   setPair: (pair: string) => void;
   popularPairs: Record<string, string[]>;
+  lang: Language;
 }
 
 export function PredictionPanel({ 
@@ -29,8 +31,10 @@ export function PredictionPanel({
   setAssetType, 
   pair, 
   setPair,
-  popularPairs 
+  popularPairs,
+  lang
 }: PredictionPanelProps) {
+  const t = translations[lang];
   const [timeframe, setTimeframe] = useState('5 minutes');
   
   const [loading, setLoading] = useState(false);
@@ -92,7 +96,7 @@ export function PredictionPanel({
     <div className="glass rounded-2xl overflow-hidden relative">
       <div className="bg-primary/10 border-b border-primary/20 px-6 py-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Bot className="text-primary" /> AI Prediction Engine
+          <Bot className="text-primary" /> {t.predictionEngine}
         </h2>
         <div className="flex items-center gap-1 text-xs text-primary font-bold bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
           <Zap size={14} className="animate-pulse" /> Gemini 2.5 Active
@@ -104,7 +108,7 @@ export function PredictionPanel({
         <div className="space-y-6 md:space-y-5">
           <div>
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-              <Target size={14} /> Asset Type
+              <Target size={14} /> {t.assetType}
             </label>
             <div className="grid grid-cols-2 lg:grid-cols-2 gap-2">
               {ASSET_TYPES.map(type => (
@@ -125,7 +129,7 @@ export function PredictionPanel({
 
           <div>
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-              <Target size={14} /> Trading Pair / Asset
+              <Target size={14} /> {t.tradingPair}
             </label>
             <select
               value={pair}
@@ -140,7 +144,7 @@ export function PredictionPanel({
 
           <div>
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-              <Clock size={14} /> Prediction Timeframe
+              <Clock size={14} /> {t.timeframe}
             </label>
             <select
               value={timeframe}
@@ -161,9 +165,9 @@ export function PredictionPanel({
             }`}
           >
             {loading ? (
-              <><Zap className="animate-spin" size={20} /> Analyzing Market...</>
+              <><Zap className="animate-spin" size={20} /> {t.analyzing}</>
             ) : (
-              <>Generate Prediction <ArrowRight size={20} /></>
+              <>{t.generate} <ArrowRight size={20} className={lang === 'ar' ? 'rotate-180' : ''} /></>
             )}
           </button>
 
@@ -208,12 +212,12 @@ export function PredictionPanel({
                   {result.direction}
                 </div>
                 <div className="inline-block bg-white/5 border border-white/10 rounded-full px-4 py-1 text-sm font-mono text-slate-300">
-                  Confidence: <span className={result.confidence > 80 ? 'text-primary font-bold' : ''}>{result.confidence}%</span>
+                  {t.confidence}: <span className={result.confidence > 80 ? 'text-primary font-bold' : ''}>{result.confidence}%</span>
                 </div>
               </div>
               
               <div className="mt-auto bg-white/5 rounded-lg p-4 text-sm text-slate-300 leading-relaxed border-l-4 border-primary">
-                <strong className="text-white block mb-1">AI Reasoning:</strong>
+                <strong className="text-white block mb-1">{t.reasoning}:</strong>
                 {result.reasoning}
               </div>
             </div>
